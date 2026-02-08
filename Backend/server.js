@@ -4,6 +4,9 @@ import connectDB from "./src/services/db.js";
 import startCommand from "./src/commands/start.command.js";
 import reminderCommand from "./src/commands/reminder.command.js";
 import "./src/services/cron.js";
+import listCommand from "./src/commands/list.command.js";
+import deleteCommand from "./src/commands/delete.command.js";
+import askCommand from "./src/commands/chat.command.js";
 
 dotenv.config();
 
@@ -16,8 +19,10 @@ bot.hears(["hi", "hello"], (ctx) =>
 );
 
 bot.use(startCommand);
+bot.use(askCommand);
 bot.use(reminderCommand);
-
+bot.use(listCommand);
+bot.use(deleteCommand);
 
 connectDB().catch((err) => {
   console.error("Database connection failed:", err);

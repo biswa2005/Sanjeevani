@@ -6,9 +6,6 @@ import { getISTTime, IST } from "./dayjs.js";
 cron.schedule("* * * * *", async () => {
     const now = getISTTime().format("HH:mm");
     const today = getISTTime().format("dddd");
-    setInterval( () => {
-      console.log(`Checking reminders at ${now} on ${today}...`);
-    }, 10000);
     const reminders = await Reminder.find();
 
     for (const r of reminders) {

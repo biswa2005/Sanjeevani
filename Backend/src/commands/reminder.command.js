@@ -9,7 +9,7 @@ export default async function reminderCommand(ctx, next) {
     return ctx.reply("❌ Invalid format. Use /start for help");
   }
 
-  const medicine = parts[1];
+  const medicine = parts[1].toLowerCase();
   const times = parts[2].split(",");
   const repeat = parts[3];
   const days = parts[4] ? parts[4].split(",") : [];
