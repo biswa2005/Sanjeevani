@@ -10,7 +10,6 @@ Text:
 ${text}
 `;
   const response = await askGemini(prompt);
-  console.log("Raw symptom extraction response:", response);
 
   // Try to parse the model's text into a JS array of strings.
   try {

@@ -8,10 +8,12 @@ import listCommand from "./src/commands/list.command.js";
 import deleteCommand from "./src/commands/delete.command.js";
 import askCommand from "./src/commands/chat.command.js";
 import healthcareCommand from "./src/commands/hospital.command.js";
+import helpCommand from "./src/commands/help.command.js";
 
 dotenv.config();
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
+console.log("🤖 Starting the bot...");
 
 bot.hears(["hi", "hello"], (ctx) =>
   ctx.reply(`👋 Hi there! Welcome to Sanjeevani🌿,
@@ -20,6 +22,7 @@ bot.hears(["hi", "hello"], (ctx) =>
 );
 
 bot.use(startCommand);
+bot.use(helpCommand);
 bot.use(askCommand);
 bot.use(reminderCommand);
 bot.use(listCommand);

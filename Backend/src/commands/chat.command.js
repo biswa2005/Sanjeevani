@@ -6,7 +6,7 @@ export default async function askCommand(ctx, next) {
   const userText = ctx.message.text.replace("/ask", "").trim();
 
   if (!userText) {
-    return ctx.reply("❓ Please describe your symptoms.");
+    return ctx.reply("❌ Invalid format. Use /ask <symptom_description>");
   }
 
   await ctx.reply("🧠 Analyzing your message...");

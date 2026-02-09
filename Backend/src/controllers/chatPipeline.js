@@ -28,7 +28,6 @@ async function processChat(userText) {
   }
 
   const symptoms = await extractSymptoms(englishText);
-  console.log("Extracted symptoms:", symptoms);
   const diseaseResult = await predictDisease(symptoms);
 
   let reply = `
