@@ -1,8 +1,7 @@
 import processChat from "../controllers/chatPipeline.js";
 
-
 export default async function askCommand(ctx, next) {
-  if (!ctx.message?.text.startsWith("/ask")) return next();
+  if (!ctx.message?.text?.startsWith("/ask")) return next();
 
   const userText = ctx.message.text.replace("/ask", "").trim();
 
@@ -19,4 +18,4 @@ export default async function askCommand(ctx, next) {
     console.error(err);
     await ctx.reply("❌ Something went wrong. Please try again.");
   }
-};
+}

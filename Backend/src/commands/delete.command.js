@@ -1,7 +1,7 @@
 import Reminder from "../models/reminder.model.js";
 
 export default async function deleteCommand(ctx, next) {
-  if (!ctx.message?.text.startsWith("/delete")) return next();
+  if (!ctx.message?.text?.startsWith("/delete")) return next();
   const parts = ctx.message.text.split(" ");
   if (parts.length < 2) {
     return ctx.reply("❌ Invalid format. Use /delete <medicine_name>");

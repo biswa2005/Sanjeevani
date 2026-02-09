@@ -1,7 +1,7 @@
 import Reminder from "../models/reminder.model.js";
 
 export default async function reminderCommand(ctx, next) {
-  if (!ctx.message?.text.startsWith("/remind")) return next();
+  if (!ctx.message?.text?.startsWith("/remind")) return next();
 
   const parts = ctx.message.text.split(" ");
 
