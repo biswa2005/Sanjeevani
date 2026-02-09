@@ -2,31 +2,62 @@ import mongoose from "mongoose";
 
 const reminderSchema = new mongoose.Schema(
   {
-    chatId: { type: Number, required: true },
+    chatId: {
+      type: Number,
+      required: true,
+    },
+
     type: {
       type: String,
       enum: ["medicine", "vaccine"],
       default: "medicine",
     },
-    medicine: { type: String, required: true },
 
-    times: [String],
-    // ["08:00", "14:00", "21:00"]
+    /* =========================
+       💊 MEDICINE FIELDS
+       ========================= */
+    medicine: {
+      type: String,
+      required: function () {
+        return this.type === "medicine";
+      },
+    },
+
+    times: {
+      type: [String], // ["08:00", "14:00"]
+      default: [],
+    },
 
     repeat: {
       type: String,
-      enum: ["daily", "weekly"],
+      enum: ["daily", "weekly", "monthly"],
       default: "daily",
     },
 
-    days: [String],
-    // ["Monday", "Wednesday"] (for weekly)
-    vaccine: { type: String, required: true },
-    date: { type: String, required: true }, // YYYY-MM-DD
-    time: String, // HH:mm
-    notified: {
-      type: Boolean,
-      default: false,
+    days: {
+      type: [String], // ["Monday", "Wednesday"]
+      default: [],
+    },
+
+    /* =========================
+       💉 VACCINE FIELDS
+       ========================= */
+    vaccine: {
+      type: String,
+      required: function () {
+        return this.type === "vaccine";
+      },
+    },
+
+    date: {
+      type: String, // YYYY-MM-DD
+      required: function () {
+        return this.type === "vaccine";
+      },
+    },
+
+    time: {
+      type: String, // HH:mm
     },
   },
   { timestamps: true },
