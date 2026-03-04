@@ -46,7 +46,15 @@ console.log("🤖 Bot is up and running...");
 process.on("SIGINT", () => bot.stop());
 process.on("SIGTERM", () => bot.stop());
 
+app.get("/", (req, res) => {
+  res.send(
+    "Welcome to the Sanjeevani Bot API! The bot is running and ready to assist you with your health needs.",
+  );
+});
+
 app.listen(process.env.PORT || 3000, () => {
-  console.log(`🚀 Server is running on port https://localhost:${process.env.PORT || 3000}`);
+  console.log(
+    `🚀 Server is running on port https://localhost:${process.env.PORT || 3000}`,
+  );
 });
 export default bot;
