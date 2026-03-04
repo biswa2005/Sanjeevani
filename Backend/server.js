@@ -1,4 +1,5 @@
 import { Telegraf } from "telegraf";
+import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./src/services/db.js";
 import startCommand from "./src/commands/start.command.js";
@@ -11,6 +12,8 @@ import healthcareCommand from "./src/commands/hospital.command.js";
 import helpCommand from "./src/commands/help.command.js";
 
 dotenv.config();
+
+const app = express();
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 console.log("🤖 Starting the bot...");
@@ -43,4 +46,7 @@ console.log("🤖 Bot is up and running...");
 process.on("SIGINT", () => bot.stop());
 process.on("SIGTERM", () => bot.stop());
 
+app.listen(process.env.PORT || 3000, () => {
+  console.log(`🚀 Server is running on port https://localhost:${process.env.PORT || 3000}`);
+});
 export default bot;
