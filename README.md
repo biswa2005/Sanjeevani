@@ -154,6 +154,8 @@ The SANJEEVANI ecosystem consists of multiple interconnected components working 
 | TensorFlow/Keras Model  |
 +-------------------------+
 ```
+<img width="2680" height="1916" alt="image" src="https://github.com/user-attachments/assets/f56ca166-b6b9-4841-b362-38e233aff154" />
+
 
 ---
 
