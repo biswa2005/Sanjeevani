@@ -1,0 +1,10 @@
+{
+  "description": "An AI-powered healthcare assistant that offers symptom guidance, medicine reminders, and healthcare service discovery, designed for accessible and trustworthy support.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
