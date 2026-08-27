@@ -11,19 +11,22 @@ export default async function reminderCommand(ctx, next) {
   if (parts[1] === "vaccine") {
     if (parts.length < 5) {
       return ctx.reply(
-        "❌ Invalid vaccine format\n\nUse:\n/remind vaccine <name> <YYYY-MM-DD> <HH:MM>\n\nExample:\n/remind vaccine Covaxin 2026-03-15 10:30",
+        "❌ Invalid vaccine format\n\nUse:\n/remind vaccine <name> <YYYY-MM-DD> <HH:MM>\n\nExample:\n/remind vaccine Covaxin 2026-03-15 10:30"
       );
     }
 
     const vaccine = parts[2];
     const date = parts[3];
-    const time = parts[4];
+    
+    // Fix: Pad single digit hours (e.g., "9:30" -> "09:30")
+    let [vHour, vMinute] = parts[4].split(":");
+    const time = `${vHour.padStart(2, "0")}:${vMinute}`;
 
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return ctx.reply("❌ Date must be YYYY-MM-DD");
     }
 
-    if (!/^\d{1,2}:\d{2}$/.test(time)) {
+    if (!/^\d{2}:\d{2}$/.test(time)) {
       return ctx.reply("❌ Time must be HH:MM");
     }
 
@@ -37,44 +40,49 @@ export default async function reminderCommand(ctx, next) {
 
     return ctx.reply(
       `✅ Vaccine scheduled!\n\n💉 ${vaccine}\n📅 ${date}\n⏰ ${time}`,
-      { parse_mode: "Markdown" },
+      { parse_mode: "Markdown" }
     );
   }
 
   /* =========================
-     MEDICINE MODE (YOUR EXISTING LOGIC)
+     MEDICINE MODE
      ========================= */
-
   if (parts.length < 4) {
     return ctx.reply(
-      "❌ Invalid format. Use /remind_medicine <medicine_name(e.g:- calpol)> <time (e.g:- 9:00, 23:00)> <frequency(e.g:- daily, weekly)> <days(e.g:-Monday)>",
+      "❌ Invalid format. Use:\n/remind <medicine_name> <time> <frequency> <days>\n\nExample:\n/remind Calpol 09:00,21:00 daily"
     );
   }
 
   const medicine = parts[1].toLowerCase();
-  const times = parts[2].split(",");
-  const repeat = parts[3];
-  const days = parts[4] ? parts[4].split(",") : [];
+  const repeat = parts[3].toLowerCase();
+  
+  // Fix: Pad all times to guarantee HH:mm matching
+  const times = parts[2].split(",").map(t => {
+    let [hour, minute] = t.split(":");
+    return `${hour.padStart(2, "0")}:${minute}`;
+  });
+
+  // Fix: Lowercase and trim all days to prevent casing mismatches
+  const days = parts[4] 
+    ? parts[4].split(",").map(d => d.trim().toLowerCase()) 
+    : [];
 
   if (!medicine) {
-    ctx.reply("❌ Medicine name is required.");
-    return;
+    return ctx.reply("❌ Medicine name is required.");
   }
-  if (times.some((t) => !/^\d{1,2}:\d{2}$/.test(t))) {
-    ctx.reply("❌ Time must be in HH:MM format.");
-    return;
+  if (times.some((t) => !/^\d{2}:\d{2}$/.test(t))) {
+    return ctx.reply("❌ Time must be in HH:MM format (e.g., 09:00 or 23:00).");
   }
   if (!["daily", "weekly", "monthly"].includes(repeat)) {
-    ctx.reply("❌ Frequency must be daily, weekly, or monthly.");
-    return;
+    return ctx.reply("❌ Frequency must be daily, weekly, or monthly.");
   }
   if (repeat === "weekly" && days.length === 0) {
-    ctx.reply("❌ Weekly reminders require at least one day.");
-    return;
+    return ctx.reply("❌ Weekly reminders require at least one day (e.g., Monday).");
   }
 
   await Reminder.create({
     chatId: ctx.chat.id,
+    type: "medicine", // Crucial fix: Added type property
     medicine,
     times,
     repeat,
@@ -83,6 +91,6 @@ export default async function reminderCommand(ctx, next) {
 
   ctx.reply(
     `✅ Reminder saved!\n\n💊 ${medicine}\n⏰ ${times.join(", ")}\n🔁 ${repeat}`,
-    { parse_mode: "Markdown" },
+    { parse_mode: "Markdown" }
   );
 }

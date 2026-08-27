@@ -1,0 +1,9 @@
+version: "3.8"
+
+services:
+  mongo:
+    image: mongo:latest
+    container_name: sanjeevani_mongo
+    restart: always
+    ports:
+      - "27017:27017"

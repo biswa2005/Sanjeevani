@@ -6,43 +6,60 @@ import { getISTTime, IST } from "./dayjs.js";
 cron.schedule(
   "* * * * *",
   async () => {
-    const now = getISTTime().format("HH:mm");
-    const today = getISTTime().format("dddd");
-    const todayDate = getISTTime().format("YYYY-MM-DD");
+    try {
+      const now = getISTTime().format("HH:mm");
+      const todayDate = getISTTime().format("YYYY-MM-DD");
+      // Convert current day to lowercase so it matches the DB format
+      const today = getISTTime().format("dddd").toLowerCase();
 
-    const reminders = await Reminder.find();
+      // 👀 LOGGING: Check if the cron job is running every minute
+      console.log(`🕒 [CRON] Checking for reminders at ${now} on ${todayDate}...`);
 
-    for (const r of reminders) {
-      /* =========================
-       💊 MEDICINE REMINDERS
-       ========================= */
-      if (r.type === "medicine") {
-        if (!r.times.includes(now)) continue;
-        if (r.repeat === "weekly" && !r.days.includes(today)) continue;
-
-        await bot.telegram.sendMessage(
-          r.chatId,
-          `💊 *Medicine Reminder*\n\n⏰ ${now}\nTake *${r.medicine}*`,
-          { parse_mode: "Markdown" },
-        );
+      // Optimization: Fetch only reminders scheduled for this exact minute
+      const reminders = await Reminder.find({
+        $or: [
+          { type: "medicine", times: now },
+          { type: "vaccine", date: todayDate, time: now },
+        ],
+      });
+      
+      // Optional: Log if it found any reminders this minute
+      if (reminders.length > 0) {
+        console.log(`🔔 [CRON] Found ${reminders.length} reminder(s) to send!`);
       }
 
-      /* =========================
-       💉 VACCINE (ONE-TIME)
-       ========================= */
-      if (r.type === "vaccine") {
-        if (r.date !== todayDate || r.time !== now) continue;
+      for (const r of reminders) {
+        /* =========================
+           💊 MEDICINE REMINDERS
+           ========================= */
+        if (r.type === "medicine") {
+          // Check for weekly medicine days
+          if (r.repeat === "weekly" && !r.days.includes(today)) continue;
 
-        await bot.telegram.sendMessage(
-          r.chatId,
-          `💉 *Vaccine Reminder*\n\n📅 Today\n⏰ ${now}\nPlease take *${r.vaccine}*`,
-          { parse_mode: "Markdown" },
-        );
+          await bot.telegram.sendMessage(
+            r.chatId,
+            `💊 *Medicine Reminder*\n\n⏰ ${now}\nTime to take *${r.medicine}*`,
+            { parse_mode: "Markdown" }
+          );
+        }
 
-        // 🔥 AUTO DELETE AFTER NOTIFY
-        await Reminder.deleteOne({ _id: r._id });
+        /* =========================
+           💉 VACCINE (ONE-TIME)
+           ========================= */
+        if (r.type === "vaccine") {
+          await bot.telegram.sendMessage(
+            r.chatId,
+            `💉 *Vaccine Reminder*\n\n📅 Today\n⏰ ${now}\nPlease take *${r.vaccine}*`,
+            { parse_mode: "Markdown" }
+          );
+
+          // Auto delete after the vaccine reminder sends
+          await Reminder.deleteOne({ _id: r._id });
+        }
       }
+    } catch (error) {
+      console.error("❌ Cron Job Error:", error);
     }
   },
-  { timezone: IST },
+  { timezone: IST }
 );
