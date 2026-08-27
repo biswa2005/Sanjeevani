@@ -25,5 +25,9 @@
     "node-cron": "^4.2.1",
     "nodemon": "^3.1.11",
     "telegraf": "^4.16.3"
+  },
+  "allowScripts": {
+    "sharp@0.32.6": true,
+    "protobufjs@6.11.6": true
   }
 }

@@ -7,6 +7,8 @@ cron.schedule(
   "* * * * *",
   async () => {
     try {
+      if (!bot) return;
+
       const now = getISTTime().format("HH:mm");
       const todayDate = getISTTime().format("YYYY-MM-DD");
       // Convert current day to lowercase so it matches the DB format

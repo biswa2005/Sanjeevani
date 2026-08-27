@@ -1,8 +1,9 @@
-import dns from 'dns';
-dns.setServers(['8.8.8.8', '8.8.4.4']);
+import dns from "dns";
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 import { Telegraf } from "telegraf";
 import express from "express";
 import dotenv from "dotenv";
+dotenv.config();
 
 import startCommand from "./src/commands/start.command.js";
 import reminderCommand from "./src/commands/reminder.command.js";
@@ -13,8 +14,6 @@ import askCommand from "./src/commands/chat.command.js";
 import healthcareCommand from "./src/commands/hospital.command.js";
 import helpCommand from "./src/commands/help.command.js";
 
-
-dotenv.config();
 import connectDB from "./src/services/db.js";
 const app = express();
 app.use(express.json());
@@ -56,12 +55,12 @@ app.get("/", (req, res) => {
   );
 });
 
-import { processMedicalChat } from "./src/controllers/chatpipeline.js" // Adjust path if needed
+import { processMedicalChat } from "./src/controllers/chatpipeline.js"; // Adjust path if needed
 
 app.post("/chatpipeline/translate", async (req, res) => {
   // Extract the Hindi input text from the request body
   const userText = String(req.body?.text || "").trim();
-  
+
   if (!userText) {
     return res.status(400).json({
       error: "Request body must include a non-empty 'text' field.",
@@ -71,14 +70,14 @@ app.post("/chatpipeline/translate", async (req, res) => {
   try {
     // Run the text through the end-to-end LangChain medical pipeline
     const result = await processMedicalChat(userText);
-    
+
     // Return the full diagnostic object back to the client/Postman
     return res.status(200).json(result);
   } catch (err) {
     console.error("chatpipeline translate POST error:", err);
-    return res.status(500).json({ 
-      error: "Failed to process medical translation request.", 
-      details: err.message 
+    return res.status(500).json({
+      error: "Failed to process medical translation request.",
+      details: err.message,
     });
   }
 });
@@ -86,7 +85,7 @@ app.post("/chatpipeline/translate", async (req, res) => {
 // // Direct translation test endpoint
 // app.post("/chatpipeline/test-translate", async (req, res) => {
 //   const { text, lang } = req.body;
-  
+
 //   if (!text || !lang) {
 //     return res.status(400).json({ error: "Provide 'text' and 'lang' fields" });
 //   }
@@ -94,9 +93,9 @@ app.post("/chatpipeline/translate", async (req, res) => {
 //   try {
 //     const { translateFromEnglish } = await import("./src/controllers/chatpipeline.js");
 //     const result = await translateFromEnglish(text, lang);
-//     return res.json({ 
-//       input: text, 
-//       targetLang: lang, 
+//     return res.json({
+//       input: text,
+//       targetLang: lang,
 //       output: result,
 //       success: result !== text
 //     });
@@ -105,7 +104,6 @@ app.post("/chatpipeline/translate", async (req, res) => {
 //     return res.status(500).json({ error: err.message });
 //   }
 // });
-
 
 app.listen(process.env.PORT || 3000, () => {
   console.log(

@@ -78,7 +78,9 @@ async function healthcareCommand(ctx, next) {
         console.error(`📝 Details:`, error.message);
       }
 
-      throw error; // Pass the error back up to bot.js
+      await ctx.reply(
+        "❌ The healthcare map service is temporarily unavailable. Please try again in a moment.",
+      );
     }
   }
   next();

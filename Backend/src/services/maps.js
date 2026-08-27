@@ -1,71 +1,74 @@
 import axios from "axios";
 
-// Backup Server 1 (France)
-// const OVERPASS_URL = "https://overpass.kumi.systems/api/interpreter";
-
-// Backup Server 2 (Russia)
-const OVERPASS_URL = "https://maps.mail.ru/osm/tools/overpass/api/interpreter";
+const OVERPASS_ENDPOINTS = [
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",
+  "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+  "https://overpass.freemap.sk/api/interpreter",
+];
 
 async function getNearbyHealthcareCenters(lat, lng, radiusMeters = 5000) {
-  const query = `
-    [out:json][timeout:25];
-    (
-      node["amenity"~"hospital|clinic|pharmacy|doctors|nursing_home"](around:${radiusMeters},${lat},${lng});
-      node["healthcare"](around:${radiusMeters},${lat},${lng});
-      way["amenity"~"hospital|clinic|pharmacy|doctors|nursing_home"](around:${radiusMeters},${lat},${lng});
-      way["healthcare"](around:${radiusMeters},${lat},${lng});
-    );
-    out center;
-  `;
+  // 1. Sanitize and validate coordinates
+  const parsedLat = parseFloat(lat);
+  const parsedLng = parseFloat(lng);
 
-  try {
-    const response = await axios.post(
-      OVERPASS_URL,
-      `data=${encodeURIComponent(query)}`,
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "Accept": "application/json", // Force the server to accept JSON
-          // IMPORTANT: Replace these with your actual bot name, email, or GitHub link
-          "User-Agent": "MyHealthcareBot/1.0 (contact: your_actual_email@gmail.com)",
-          "Referer": "https://github.com/yourusername", // The firewall now requires a Referer
-        },
-        timeout: 10000, 
-      }
-    );
-
-    const elements = response.data?.elements || [];
-
-    const places = elements
-      .map((el) => {
-        const placeLat = el.lat || el.center?.lat;
-        const placeLng = el.lon || el.center?.lon;
-        const name = el.tags?.name;
-
-        if (!name || !placeLat || !placeLng) return null;
-
-        const category =
-          el.tags?.amenity || el.tags?.healthcare || "Healthcare Facility";
-
-        return {
-          name,
-          category: category.replace(/_/g, " ").toUpperCase(),
-          mapLink: `https://www.google.com/maps/search/?api=1&query=${placeLat},${placeLng}`,
-        };
-      })
-      .filter(Boolean);
-
-    // Deduplicate by name
-    return Array.from(
-      new Map(places.map((place) => [place.name, place])).values()
-    );
-    
-  } catch (error) {
-    // If it fails, log the exact server rejection reason (e.g., 429 Too Many Requests)
-    console.error("Overpass API Error Status:", error.response?.status);
-    console.error("Overpass API Error Data:", error.response?.data || error.message);
-    throw error; // Re-throw so bot.js can catch it and tell the user
+  if (isNaN(parsedLat) || isNaN(parsedLng)) {
+    throw new Error(`Invalid coordinates supplied: lat=${lat}, lng=${lng}`);
   }
+
+  // 2. Optimized Overpass QL query (nwr = node, way, relation)
+
+  let lastError = null;
+
+  for (const endpoint of OVERPASS_ENDPOINTS) {
+    try {
+      // Use GET request with URI component encoding for maximum server compatibility
+      const url = `${endpoint}?data=${encodeURIComponent(query)}`;
+
+      const response = await axios.get(url, {
+        timeout: 8000,
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      // Handle cases where server returns 200 OK but sends an HTML error page
+      if (typeof response.data !== "object" || !response.data.elements) {
+        throw new Error("Server returned non-JSON response");
+      }
+
+      const places = response.data.elements
+        .map((el) => {
+          const placeLat = el.lat || el.center?.lat;
+          const placeLng = el.lon || el.center?.lon;
+          const name = el.tags?.name;
+
+          if (!name || !placeLat || !placeLng) return null;
+
+          const category =
+            el.tags?.amenity || el.tags?.healthcare || "Healthcare Facility";
+
+          return {
+            name,
+            category: category.replace(/_/g, " ").toUpperCase(),
+            mapLink: `https://www.google.com/maps/search/?api=1&query=${placeLat},${placeLng}`,
+          };
+        })
+        .filter(Boolean);
+
+      // Return deduplicated array on first success
+      return Array.from(
+        new Map(places.map((place) => [place.name, place])).values(),
+      );
+    } catch (error) {
+      console.warn(`[Overpass Mirror Failed] ${endpoint}: ${error.message}`);
+      lastError = error;
+    }
+  }
+
+  throw new Error(
+    `All Overpass mirrors failed. Last error: ${lastError?.message}`,
+  );
 }
 
 export default getNearbyHealthcareCenters;
